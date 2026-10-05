@@ -1,2 +1,2 @@
 all:
-	clang -o conway src/main.c
+	clang -g -o conway src/main.c

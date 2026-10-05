@@ -2,12 +2,13 @@
 #define TYPES_H
 
 
-#define N 25
-#define M 25
+#define ROWS 20 	/*  Rows */
+#define COLS 50	/*  Columns */
 
 
 typedef enum {Alive = 1, Dead = 0} State;
 typedef enum {Kill , Birth} Job;
+typedef struct { size_t x,y;} Point;
 
 typedef struct {
 	size_t x,y;
@@ -20,9 +21,9 @@ typedef struct {
 	size_t alive_neighbours;
 } Cell;
 
-Cell cells[N*M];
+Cell cells[ROWS][COLS];
 
-CellJob jobs[N*M];
+CellJob jobs[ROWS*COLS];
 
 
 #endif

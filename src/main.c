@@ -8,22 +8,32 @@ int jobCount = -1;
 
 int main() {
 
-	int x = M / 2;
-	int y = N / 2;
+	useconds_t micro_s = 500000;
+
+	int x = 5;
+	int y = 5;
 
 	/* Glider  */	
-		cells[(N * (y - 1)) + x].state = Alive;
-		cells[(N * (y)) + x + 1].state = Alive;
-		cells[(N * (y + 1)) + x + 1].state = Alive;
-		cells[(N * (y + 1)) + x ].state = Alive;
-		cells[(N * (y + 1)) + x - 1].state = Alive;
+		cells[(y - 1)][x].state 	= Alive;
+		cells[y][x + 1].state 		= Alive;
+		cells[(y + 1)][x + 1].state 	= Alive;
+		cells[(y + 1)][x].state 	= Alive;
+		cells[(y + 1)][x - 1].state 	= Alive;
 	/* End Glider  */	
+		cells[0][x].state 		= Alive;
+		cells[1][x].state 		= Alive;    		
+		cells[2][x].state 		= Alive;	
+	
+	
+
+
+
 
 	while(1)  {
 		printf("\e[2J");
 		perform_jobs();
 		draw();
-		sleep(1);
+		usleep(micro_s);
 	}
 	return 0;
 }
@@ -31,19 +41,20 @@ int main() {
 
 
 void draw() {
-	for(int y = 0; y < N; y++) {
-		for(int x = 0; x < M; x++) {
-			Cell *cell = (Cell*) &cells[(N * y) + x];
+
+	for(int y = 0; y < ROWS; y++) {
+		for(int x = 0; x < COLS; x++) {
+			Cell *cell = (Cell*) &cells[y][x];
 			int aliveNeighbours = alive_neighbours(x, y);
 			cell->alive_neighbours = aliveNeighbours;
-			putchar('|');
 			if(cell->state == Alive) {
-				putchar('*');
+				printf("1");
 			}
 			else
-				putchar(' ');
+				printf(" ");
+			printf(" ");
 			create_job_for(cell, x, y);
-		}
+		} 
 		putchar('\n');
 	}
 }
@@ -72,11 +83,12 @@ void perform_jobs() {
 	while(jobCount >= 0) {
 		CellJob job = jobs[jobCount--];
 		if(job.job == Kill) {
-			cells[(N * job.y) + job.x].state = Dead;	
+			cells[job.y][job.x].state = Dead;	
 		} else {
-			cells[(N * job.y) + job.x].state = Alive;	
+			cells[job.y][job.x].state = Alive;	
 		}
 	}
+
 }
 int alive_neighbours(int x, int y) {
 	int count = 0;
@@ -86,19 +98,18 @@ int alive_neighbours(int x, int y) {
 	/*  m_ = mid */
 	/*  b_ = bot */
 
-	int t_leftDiagonal 	=  (N * (y - 1)) + (x - 1);
-	int t_up 	   	=  (N * (y - 1)) + (x - 0);
-	int t_rightDiagonal 	=  (N * (y - 1)) + (x + 1);
 
-	int m_left 	  	=  (N * (y - 0)) + (x - 1);
-	int m_right		=  (N * (y - 0)) + (x + 1);
+	Point t_leftDiagonal 	= {.x = x - 1,.y = y - 1};
+	Point t_up 		= {.x = x,.y = y - 1};
+	Point t_rightDiagonal   = {.x = x + 1,.y = y - 1};
+	Point m_left 		= {.x = x - 1,.y = y};
+	Point m_right 		= {.x = x + 1,.y = y};
+	Point b_leftDiagonal 	= {.x = x - 1,.y = y + 1};
+	Point b_down 		= {.x = x,.y = y + 1};
+	Point b_rightDiagonal	= {.x = x + 1,.y = y + 1};
 
-	int b_leftDiagonal 	=  (N * (y + 1)) + (x - 1);
-	int b_down		=  (N * (y + 1)) + (x - 0);
-	int b_rightDiagonal 	=  (N * (y + 1)) + (x + 1);
 
-	int moore_neighbours[8] = 
-		{
+	Point moore_neighbours[8] = {
 			t_leftDiagonal, 
 			t_up, 
 			t_rightDiagonal, 
@@ -111,13 +122,12 @@ int alive_neighbours(int x, int y) {
 		       	b_rightDiagonal,
 		};
 
+
 	for(int i = 0; i < 8; i++) {
-		int neighbour_pos = moore_neighbours[i];
-		if(0 <= neighbour_pos && neighbour_pos <= (N*M)){
-			Cell cell = cells[neighbour_pos];
-			if(cell.state == Alive)
+		Point neighbour = moore_neighbours[i];
+		if(is_within_bounds(neighbour)) {
+			if(cells[neighbour.y][neighbour.x].state == Alive) 
 				count++;
-		
 		}
 	}
 
@@ -129,4 +139,9 @@ void insert_job(CellJob job) {
 	jobs[++jobCount] = job;
 }
 
-
+int is_within_bounds(Point p) {
+	if(0 <= p.x && p.x <= COLS)
+		if(0 <= p.y && p.y <= ROWS)
+			return 1;
+	return 0;
+}
